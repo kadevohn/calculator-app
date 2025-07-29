@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculator</title>
+  <style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #1a1a1a;
+    margin: 0;
+    font-family: monospace;
+  }
+
+  .calculator {
+    background: #2c2c2c;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    width: 320px;
+  }
+
+  .display {
+    background: #000;
+    color: #0f0;
+    font-size: 2.2rem;
+    padding: 15px 10px;
+    text-align: right;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  button {
+    padding: 20px;
+    font-size: 1.4rem;
+    border: none;
+    border-radius: 8px;
+    background: #444;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.1s ease;
+  }
+
+  button:active {
+    background: #666;
+  }
+</style>
+
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+      <button>7</button>
+      <button>8</button>
+      <button>9</button>
+      <button>/</button>
+
+      <button>4</button>
+      <button>5</button>
+      <button>6</button>
+      <button>*</button>
+
+      <button>1</button>
+      <button>2</button>
+      <button>3</button>
+      <button>-</button>
+
+      <button>0</button>
+      <button>C</button>
+      <button>=</button>
+      <button>+</button>
+    </div>
+  </div>
+  <script>
+  const display = document.getElementById('display');
+  const buttons = document.querySelectorAll('button');
+
+  let current = '';
+  let operator = '';
+  let operand = '';
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const val = button.textContent;
+
+      if (!isNaN(val)) {
+        current += val;
+        display.textContent = current;
+      } else if (val === 'C') {
+        current = '';
+        operator = '';
+        operand = '';
+        display.textContent = '0';
+      } else if (val === '=') {
+        if (operator && operand !== '' && current !== '') {
+          current = eval(`${operand}${operator}${current}`).toString();
+          display.textContent = current;
+          operator = '';
+          operand = '';
+        }
+      } else { // operator
+        if (current === '') return;
+        operand = current;
+        operator = val;
+        current = '';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
