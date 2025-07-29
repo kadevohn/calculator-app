@@ -92,33 +92,75 @@
   let operator = '';
   let operand = '';
 
+  function updateDisplay(value) {
+    display.textContent = value;
+  }
+
+  function clear() {
+    current = '';
+    operator = '';
+    operand = '';
+    updateDisplay('0');
+  }
+
+  function inputNumber(num) {
+    current += num;
+    updateDisplay(current);
+  }
+
+  function setOperator(op) {
+    if (current === '') return;
+    operand = current;
+    operator = op;
+    current = '';
+  }
+
+  function evaluate() {
+    if (operator && operand !== '' && current !== '') {
+      const result = eval(`${operand}${operator}${current}`);
+      current = result.toString();
+      updateDisplay(current);
+      operator = '';
+      operand = '';
+    }
+  }
+
   buttons.forEach(button => {
     button.addEventListener('click', () => {
       const val = button.textContent;
 
       if (!isNaN(val)) {
-        current += val;
-        display.textContent = current;
+        inputNumber(val);
       } else if (val === 'C') {
-        current = '';
-        operator = '';
-        operand = '';
-        display.textContent = '0';
+        clear();
       } else if (val === '=') {
-        if (operator && operand !== '' && current !== '') {
-          current = eval(`${operand}${operator}${current}`).toString();
-          display.textContent = current;
-          operator = '';
-          operand = '';
-        }
-      } else { // operator
-        if (current === '') return;
-        operand = current;
-        operator = val;
-        current = '';
+        evaluate();
+      } else {
+        setOperator(val);
       }
     });
   });
+
+  document.addEventListener('keydown', (e) => {
+  const key = e.key;
+
+  if (!isNaN(key)) {
+    inputNumber(key);
+  } else if (['+', '-', '*', '/'].includes(key)) {
+    setOperator(key);
+  } else if (key === 'Enter' || key === '=') {
+    evaluate();
+  } else if (key === 'c' || key === 'C' || key === 'Escape') {
+    clear();
+  } else if (key === 'Backspace') {
+    if (current.length > 0) {
+      current = current.slice(0, -1);
+      updateDisplay(current || '0');
+    }
+  }
+});
+
+
 </script>
 
 </body>
