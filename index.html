@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+  
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calculator</title>
   <style>
+
+    
+
+    
   body {
     display: flex;
     justify-content: center;
@@ -55,11 +60,51 @@
   button:active {
     background: #666;
   }
+
+  #history {
+  margin-top: 10px;
+  padding: 10px;
+  font-family: monospace;
+  background: #222;
+  color: #bbb;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #444;
+}
+
+.history-entry {
+  padding: 4px 0;
+  border-bottom: 1px dashed #444;
+}
+  .history-entry:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: 400px) {
+    .calculator {
+      width: 100%;
+      padding: 10px;
+    }
+    .display {
+      font-size: 1.8rem;
+    }
+    button {
+      padding: 15px;
+      font-size: 1.2rem;
+    }
+  }
+  .calc-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 </style>
 
-  </style>
 </head>
 <body>
+  <div class="calc-wrapper">
   <div class="calculator">
     <div class="display" id="display">0</div>
     <div class="buttons">
@@ -84,84 +129,96 @@
       <button>+</button>
     </div>
   </div>
-  <script>
+  </div>
+  <div class="history" id="history"></div>
+ <script>
   const display = document.getElementById('display');
   const buttons = document.querySelectorAll('button');
 
-  let current = '';
-  let operator = '';
-  let operand = '';
+  let currentInput = "";
+  let currentExpression = "";
 
-  function updateDisplay(value) {
-    display.textContent = value;
+  function updateDisplay(text) {
+    display.textContent = text;
   }
 
   function clear() {
-    current = '';
-    operator = '';
-    operand = '';
-    updateDisplay('0');
+    currentInput = "";
+    currentExpression = "";
+    updateDisplay("0");
   }
 
-  function inputNumber(num) {
-    current += num;
-    updateDisplay(current);
-  }
-
-  function setOperator(op) {
-    if (current === '') return;
-    operand = current;
-    operator = op;
-    current = '';
-  }
-
-  function evaluate() {
-    if (operator && operand !== '' && current !== '') {
-      const result = eval(`${operand}${operator}${current}`);
-      current = result.toString();
-      updateDisplay(current);
-      operator = '';
-      operand = '';
+  function evaluateExpression() {
+    currentExpression += currentInput;
+    try {
+      const result = eval(currentExpression);
+      addToHistory(currentExpression, result);
+      updateDisplay(result);
+      currentInput = result.toString();
+      currentExpression = "";
+    } catch (e) {
+      updateDisplay("Error");
+      currentInput = "";
+      currentExpression = "";
     }
   }
 
+  function pressButton(value) {
+    if (!isNaN(value) || value === ".") {
+      currentInput += value;
+      updateDisplay(currentExpression + currentInput);
+    } else if (["+", "-", "*", "/"].includes(value)) {
+      if (currentInput === "" && currentExpression !== "") {
+        currentExpression = currentExpression.slice(0, -1) + value;
+      } else {
+        currentExpression += currentInput + value;
+        currentInput = "";
+      }
+      updateDisplay(currentExpression);
+    } else if (value === "=") {
+      evaluateExpression();
+    } else if (value === "C") {
+      clear();
+    } else if (value === "←") {
+      currentInput = currentInput.slice(0, -1);
+      updateDisplay(currentExpression + currentInput || "0");
+    }
+  }
+
+  // Event listeners for buttons
   buttons.forEach(button => {
     button.addEventListener('click', () => {
-      const val = button.textContent;
-
-      if (!isNaN(val)) {
-        inputNumber(val);
-      } else if (val === 'C') {
-        clear();
-      } else if (val === '=') {
-        evaluate();
-      } else {
-        setOperator(val);
-      }
+      pressButton(button.textContent);
     });
   });
 
-  document.addEventListener('keydown', (e) => {
-  const key = e.key;
-
-  if (!isNaN(key)) {
-    inputNumber(key);
-  } else if (['+', '-', '*', '/'].includes(key)) {
-    setOperator(key);
-  } else if (key === 'Enter' || key === '=') {
-    evaluate();
-  } else if (key === 'c' || key === 'C' || key === 'Escape') {
-    clear();
-  } else if (key === 'Backspace') {
-    if (current.length > 0) {
-      current = current.slice(0, -1);
-      updateDisplay(current || '0');
+  // Keyboard support
+  document.addEventListener('keydown', function(event) {
+    const key = event.key;
+    if (!isNaN(key) || key === '.') {
+      pressButton(key);
+    } else if (['+', '-', '*', '/'].includes(key)) {
+      pressButton(key);
+    } else if (key === 'Backspace') {
+      pressButton('←');
+    } else if (key === 'Enter' || key === '=') {
+      pressButton('=');
+    } else if (key === 'Escape') {
+      pressButton('C');
     }
+  });
+
+  function addToHistory(expression, result) {
+    const historyDiv = document.getElementById("history");
+    const entry = document.createElement("div");
+    entry.className = "history-entry";
+    entry.textContent = `${expression} = ${result}`;
+    historyDiv.prepend(entry);
   }
-});
 
-
+  updateDisplay("0");
 </script>
+
 
 </body>
 </html>
